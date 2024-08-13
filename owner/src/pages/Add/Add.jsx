@@ -21,30 +21,46 @@ const Add = ({url}) => {
         setData(data=>({...data,[name]:value}))
     }
 
-    const onSubmitHandler = async (event) =>{
-        event.preventDefault();
-        const formData = new FormData();
-        formData.append("name",data.name)
-        formData.append("description",data.description)
-        formData.append("price",Number(data.price))
-        formData.append("category",data.category)
-        formData.append("image",image)
-        const response = await axios.post(`${url}/api/food/add`,formData)
-        if (response.data.success) {
-            setData({
-                name:"",
-                description:"",
-                price:"",
-                category:"Salad"
-            })
-            setImage(false)
-            toast.success(response.data.message)
-        }
-        else{
-            toast.error(response.data.message)
-        }
-    }
+    const onSubmitHandler = async (event) => {
+    event.preventDefault();
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("description", data.description);
+    formData.append("price", Number(data.price));
+    formData.append("category", data.category);
 
+    // Convert file to base64 string
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      formData.append("image", reader.result);
+
+      // Send data to the server
+      try {
+        const response = await axios.post(`${url}/api/food/add`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        if (response.data.success) {
+          setData({
+            name: "",
+            description: "",
+            price: "",
+            category: "Salad",
+          });
+          setImage(null);
+          toast.success(response.data.message);
+        } else {
+          toast.error(response.data.message);
+        }
+      } catch (error) {
+        console.error("Error adding food item:", error);
+        toast.error("An error occurred while adding the food item.");
+      }
+    };
+
+    reader.readAsDataURL(image); // Convert image to base64
+  };
 
   return (
     <div className='add'>
